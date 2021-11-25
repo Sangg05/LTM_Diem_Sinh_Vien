@@ -98,6 +98,7 @@ public class Server {
                     String toan = mangDuLieuNhanDuoc[2];
                     String van = mangDuLieuNhanDuoc[3];
                     String anh = mangDuLieuNhanDuoc[4];
+                    String diemTB = mangDuLieuNhanDuoc[5];
 
                     try {
                         //kiem tra xem ma nhan vien co bi trung - neu trung thi dung lai luon
@@ -111,13 +112,32 @@ public class Server {
                     }
 
                     // neu ma sinh vien khong bi trung thi tiep tuc them moi vao co so du lieu
-                    String cauTruyVan = "INSERT INTO DiemSinhVien( hoten, mssv, toan, van, anh) "
-                            + "VALUES( '" + hoten + "' , '" + mssv + "', " + toan + ", " + van + ", " + anh + ")";
-
-                    System.out.println("cauTruyVan");
+                    String cauTruyVan = "INSERT INTO DiemSinhVien( hoten, mssv, toan, van, anh, diemTB) "
+                            + "VALUES( '" + hoten + "' , '" + mssv + "', " + toan + ", " + van + ", " + anh + ", " + diemTB + ")";
 
                     db.Query(cauTruyVan);
                     sendData("success", packet.getAddress(), packet.getPort(), socket);
+                    try {
+                        ArrayList<SinhVien> list = new ArrayList<SinhVien>();
+                        ResultSet rs = db.Query("SELECT * FROM DiemSinhVien");
+                        while (rs.next()) {
+                            SinhVien item = new SinhVien();
+                            item.setId(rs.getInt("id"));
+                            item.setHoten(rs.getString("hoten"));
+                            item.setMssv(rs.getString("mssv"));
+                            item.setToan(rs.getDouble("toan"));
+                            item.setVan(rs.getDouble("van"));
+                            item.setAnh(rs.getDouble("anh"));
+                            item.setDiemTB(rs.getDouble("diemTB"));
+                            list.add(item);
+                        }
+                        sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
+                    } catch (SQLException ex) {
+                        System.out.println("HEHE");
+                        //sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
+                    }
+
+                    
                     break;
                 case "demo2":
 

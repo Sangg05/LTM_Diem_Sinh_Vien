@@ -271,6 +271,7 @@ public class frmMain extends javax.swing.JFrame {
             client.send(new DatagramPacket(flag, flag.length, ip, port));
 
             SqlAuth sql_auth = new SqlAuth(txtIPSQL.getText(), txtPortSQL.getText(), txtUser.getText(), passText);
+            
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(outputStream);
             os.writeObject(sql_auth);

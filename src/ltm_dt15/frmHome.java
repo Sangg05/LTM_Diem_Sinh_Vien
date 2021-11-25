@@ -7,16 +7,20 @@ package ltm_dt15;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 import model.SinhVien;
 
 /**
@@ -51,6 +55,40 @@ public class frmHome extends javax.swing.JFrame {
         this.ip = ip;
         this.port = port;
         this.mapper = new ObjectMapper();
+
+        txtToan.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9')
+                        || (c == KeyEvent.VK_BACK_SPACE)
+                        || (c == KeyEvent.VK_DELETE)) && (c != '\b')) {
+                    getToolkit().beep();
+                    e.consume();
+                }
+            }
+        });
+        txtVan.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') || (c != '\b')
+                        || (c == KeyEvent.VK_BACK_SPACE)
+                        || (c == KeyEvent.VK_DELETE))) {
+                    getToolkit().beep();
+                    e.consume();
+                }
+            }
+        });
+        txtAnh.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!((c >= '0') && (c <= '9') || (c != '\b')
+                        || (c == KeyEvent.VK_BACK_SPACE)
+                        || (c == KeyEvent.VK_DELETE))) {
+                    getToolkit().beep();
+                    e.consume();
+                }
+            }
+        });
     }
 
     private frmHome() {
@@ -82,6 +120,8 @@ public class frmHome extends javax.swing.JFrame {
         btnSend = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
         jPanel4 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tbDiemSV = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Phần mềm thi trắc nghiệm");
@@ -186,15 +226,32 @@ public class frmHome extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Hiển thị điểm"));
 
+        tbDiemSV.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
+        tbDiemSV.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "id", "Họ tên", "MSSV", "Điểm TB"
+            }
+        ));
+        jScrollPane1.setViewportView(tbDiemSV);
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1)
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 205, Short.MAX_VALUE)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 423, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(21, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -218,7 +275,7 @@ public class frmHome extends javax.swing.JFrame {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 12, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(134, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel2.getAccessibleContext().setAccessibleName("Nhập thông tin sinh viên");
@@ -227,6 +284,24 @@ public class frmHome extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    void getDiem(DatagramSocket client) throws IOException {
+        packet = getData(client);
+        String json = new String(packet.getData());
+        ArrayList<SinhVien> list = mapper.readValue(json, new TypeReference<ArrayList<SinhVien>>() {
+        });
+        DefaultTableModel model = (DefaultTableModel) tbDiemSV.getModel();
+        model.setRowCount(0);
+
+        Object[] row = new Object[3];
+        for (int i = 0; i < list.size(); i++) {
+            row[0] = list.get(i).getId();
+            row[1] = list.get(i).getHoten();
+            row[2] = list.get(i).getMssv();
+            row[2] = list.get(i).getDiemTB();
+            model.addRow(row);
+        }
+    }
 
     private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
         if (txtHoten.getText().isEmpty() || txtMaSV.getText().isEmpty() || txtToan.getText().isEmpty() || txtVan.getText().isEmpty() || txtAnh.getText().isEmpty()) {
@@ -237,7 +312,10 @@ public class frmHome extends javax.swing.JFrame {
             String toan = txtToan.getText();
             String van = txtVan.getText();
             String anh = txtAnh.getText();
-            String duLieu = hoten + "#" + mssv + "#" + toan + "#" + van + "#" + anh;
+            double diemTB = (Double.parseDouble(toan) + Double.parseDouble(van) + Double.parseDouble(anh)) / 3;
+            String duLieu = hoten + "#" + mssv + "#" + toan + "#" + van + "#" + anh + "#" + diemTB;
+            
+            System.out.println("cc  " + duLieu);
 
             byte array[] = duLieu.getBytes();
             try {
@@ -245,26 +323,23 @@ public class frmHome extends javax.swing.JFrame {
                 byte flag[] = "info_sv".getBytes();
                 client.send(new DatagramPacket(flag, flag.length, ip, port));
 
-                System.out.println("1");
                 client.send(new DatagramPacket(array, array.length, ip, port));
 
-                /* Step 4*/
-                System.out.println("2");
                 packet = getData(client);
                 String result = new String(packet.getData(), 0, packet.getLength());
 
-                System.out.println(result + "       dsf");
-
                 if (result.equals("success")) {
-                    JOptionPane.showMessageDialog(rootPane, "Đăng ký thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
+                    client.send(new DatagramPacket(flag, flag.length, ip, port));
+
+                    getDiem(client);
+
+                    JOptionPane.showMessageDialog(rootPane, "Thêm điểm thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+
                 } else if (result.equals("duplicate_masv")) {
                     JOptionPane.showMessageDialog(rootPane, "Mã sinh viên đã tồn tại", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                } else if (result.equals("duplicate_sdt")) {
-                    JOptionPane.showMessageDialog(rootPane, "Số điện thoại đã tồn tại", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                } else if (result.equals("not_match")) {
-                    JOptionPane.showMessageDialog(rootPane, "Mật khẩu xác nhận không khớp !", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(rootPane, "Đăng ký thất bại", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(rootPane, "Thêm điểm thất bại", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 }
             } catch (IOException ex) {
                 Logger.getLogger(frmHome.class.getName()).log(Level.SEVERE, null, ex);
@@ -327,8 +402,10 @@ public class frmHome extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JTable tbDiemSV;
     private javax.swing.JTextField txtAnh;
     private javax.swing.JTextField txtHoten;
     private javax.swing.JTextField txtMaSV;
