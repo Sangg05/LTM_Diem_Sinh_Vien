@@ -265,7 +265,7 @@
       <Properties>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-            <TitledBorder title="B&#xe0;i thi"/>
+            <TitledBorder title="Hi&#x1ec3;n th&#x1ecb; &#x111;i&#x1ec3;m"/>
           </Border>
         </Property>
       </Properties>

@@ -184,7 +184,7 @@ public class frmHome extends javax.swing.JFrame {
                 .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, 40, Short.MAX_VALUE))
         );
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Bài thi"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Hiển thị điểm"));
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -252,12 +252,11 @@ public class frmHome extends javax.swing.JFrame {
                 System.out.println("2");
                 packet = getData(client);
                 String result = new String(packet.getData(), 0, packet.getLength());
-                
-                System.out.println(result+"       dsf");
-                
+
+                System.out.println(result + "       dsf");
+
                 if (result.equals("success")) {
                     JOptionPane.showMessageDialog(rootPane, "Đăng ký thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                    this.setVisible(false);
                 } else if (result.equals("duplicate_masv")) {
                     JOptionPane.showMessageDialog(rootPane, "Mã sinh viên đã tồn tại", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 } else if (result.equals("duplicate_sdt")) {
@@ -327,7 +326,6 @@ public class frmHome extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
