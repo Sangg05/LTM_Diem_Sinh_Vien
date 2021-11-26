@@ -89,6 +89,8 @@ public class frmHome extends javax.swing.JFrame {
                 }
             }
         });
+        getDiem(client);
+
     }
 
     private frmHome() {
@@ -124,7 +126,12 @@ public class frmHome extends javax.swing.JFrame {
         tbDiemSV = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Phần mềm thi trắc nghiệm");
+        setTitle("Phần mềm điểm sinh viên");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
+            }
+        });
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Thông tin sinh viên"));
 
@@ -226,7 +233,7 @@ public class frmHome extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Hiển thị điểm"));
 
-        tbDiemSV.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
+        tbDiemSV.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED, new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
         tbDiemSV.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
@@ -235,6 +242,7 @@ public class frmHome extends javax.swing.JFrame {
                 "id", "Họ tên", "MSSV", "Điểm TB"
             }
         ));
+        tbDiemSV.setSelectionBackground(new java.awt.Color(204, 204, 255));
         jScrollPane1.setViewportView(tbDiemSV);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -287,18 +295,21 @@ public class frmHome extends javax.swing.JFrame {
 
     void getDiem(DatagramSocket client) throws IOException {
         packet = getData(client);
+
         String json = new String(packet.getData());
+        System.out.println(json);
+
         ArrayList<SinhVien> list = mapper.readValue(json, new TypeReference<ArrayList<SinhVien>>() {
         });
         DefaultTableModel model = (DefaultTableModel) tbDiemSV.getModel();
         model.setRowCount(0);
 
-        Object[] row = new Object[3];
+        Object[] row = new Object[4];
         for (int i = 0; i < list.size(); i++) {
             row[0] = list.get(i).getId();
             row[1] = list.get(i).getHoten();
             row[2] = list.get(i).getMssv();
-            row[2] = list.get(i).getDiemTB();
+            row[3] = list.get(i).getDiemTB();
             model.addRow(row);
         }
     }
@@ -314,15 +325,13 @@ public class frmHome extends javax.swing.JFrame {
             String anh = txtAnh.getText();
             double diemTB = (Double.parseDouble(toan) + Double.parseDouble(van) + Double.parseDouble(anh)) / 3;
             String duLieu = hoten + "#" + mssv + "#" + toan + "#" + van + "#" + anh + "#" + diemTB;
-            
-            System.out.println("cc  " + duLieu);
 
             byte array[] = duLieu.getBytes();
             try {
 
                 byte flag[] = "info_sv".getBytes();
                 client.send(new DatagramPacket(flag, flag.length, ip, port));
-
+                System.out.println("send array");
                 client.send(new DatagramPacket(array, array.length, ip, port));
 
                 packet = getData(client);
@@ -330,9 +339,13 @@ public class frmHome extends javax.swing.JFrame {
 
                 if (result.equals("success")) {
 
-                    client.send(new DatagramPacket(flag, flag.length, ip, port));
-
                     getDiem(client);
+
+                    txtHoten.setText("");
+                    txtMaSV.setText("");
+                    txtToan.setText("");
+                    txtVan.setText("");
+                    txtAnh.setText("");
 
                     JOptionPane.showMessageDialog(rootPane, "Thêm điểm thành công", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
 
@@ -347,6 +360,10 @@ public class frmHome extends javax.swing.JFrame {
 
         }
     }//GEN-LAST:event_btnSendActionPerformed
+
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        // TODO add your handling code here:
+    }//GEN-LAST:event_formWindowActivated
 
     private static DatagramPacket getData(DatagramSocket socket) throws IOException {
         byte[] dataPacket = new byte[1024];

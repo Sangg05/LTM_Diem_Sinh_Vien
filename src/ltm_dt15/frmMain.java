@@ -64,7 +64,7 @@ public class frmMain extends javax.swing.JFrame {
         btnConnectSocket = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Phần mềm thi trắc nghiệm");
+        setTitle("Kết nối với server");
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Kết nối SQL Server"));
 

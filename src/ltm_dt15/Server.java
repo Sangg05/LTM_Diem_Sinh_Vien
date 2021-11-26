@@ -67,7 +67,6 @@ public class Server {
 
             switch (line) {
                 case "connectSQL":
-
                     packet = getData(socket);
                     in = new ByteArrayInputStream(packet.getData());
                     is = new ObjectInputStream(in);
@@ -78,17 +77,34 @@ public class Server {
                         db.connect("jdbc:sqlserver://" + sql.getIp() + ":" + sql.getPort() + ";Database=LapTrinhMang;user=" + sql.getUser() + ";password=" + sql.getPass());
                         //db.connect("jdbc:sqlserver://localhost:1433;Database=NCKH;user=sa;password=123456");
                         sendData("success", packet.getAddress(), packet.getPort(), socket);
+
+                        //Gửi danh sách sinh viên sang Home
+                        ArrayList<SinhVien> list = new ArrayList<SinhVien>();
+                        ResultSet rs = db.Query("SELECT * FROM DiemSinhVien");
+                        while (rs.next()) {
+                            SinhVien item = new SinhVien();
+                            item.setId(rs.getInt("id"));
+                            item.setHoten(rs.getString("hoten"));
+                            item.setMssv(rs.getString("mssv"));
+                            item.setToan(rs.getDouble("toan"));
+                            item.setVan(rs.getDouble("van"));
+                            item.setAnh(rs.getDouble("anh"));
+                            item.setDiemTB(rs.getDouble("diemTB"));
+                            list.add(item);
+                        }
+                        sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
+
                     } catch (ClassNotFoundException | SQLException ex) {
                         sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
                     }
+
                     break;
                 case "info_sv": // @author PHONG
                     packet = getData(socket);
-
                     // xu lieu du lieu duoc nhan
                     String duLieuNhanDuocTuDangKy = new String(packet.getData(), 0, packet.getLength());
 
-                    System.out.println(duLieuNhanDuocTuDangKy);
+                    System.out.println(duLieuNhanDuocTuDangKy + "      hfh");
 
                     String[] mangDuLieuNhanDuoc = duLieuNhanDuocTuDangKy.split("#");
 
@@ -137,7 +153,6 @@ public class Server {
                         //sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
                     }
 
-                    
                     break;
                 case "demo2":
 
