@@ -17,7 +17,6 @@ public class SinhVien {
     private double toan;
     private double van;
     private double anh;
-    private double diemTB;
 
     public int getId() {
         return id;
@@ -65,13 +64,5 @@ public class SinhVien {
 
     public void setAnh(double anh) {
         this.anh = anh;
-    }
-
-    public double getDiemTB() {
-        return diemTB;
-    }
-
-    public void setDiemTB(double diemTB) {
-        this.diemTB = diemTB;
     }
 }

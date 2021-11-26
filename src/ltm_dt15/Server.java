@@ -41,7 +41,7 @@ public class Server {
         return replyPacket;
     }
 
-    public static void main(String[] args) throws SocketException, IOException {
+    public static void main(String[] args) throws SocketException, IOException, Exception {
         InetAddress inet = InetAddress.getByName("localhost");
         int port = 8888;
         DatagramSocket socket = new DatagramSocket(port, inet);
@@ -55,6 +55,7 @@ public class Server {
         DBAccess db = null;
         ObjectMapper mapper = new ObjectMapper();
         SinhVien sv = new SinhVien();
+        DES des = new DES();
 
         OUTER:
         while (true) {
@@ -62,9 +63,7 @@ public class Server {
             packet = new DatagramPacket(dataPacket, dataPacket.length);
             socket.receive(packet);
             line = new String(packet.getData(), 0, packet.getLength());
-
             System.out.println(line);
-
             switch (line) {
                 case "connectSQL":
                     packet = getData(socket);
@@ -80,16 +79,21 @@ public class Server {
 
                         //Gửi danh sách sinh viên sang Home
                         ArrayList<SinhVien> list = new ArrayList<SinhVien>();
-                        ResultSet rs = db.Query("SELECT * FROM DiemSinhVien");
+                        ResultSet rs = db.Query("SELECT * FROM SinhVien");
                         while (rs.next()) {
                             SinhVien item = new SinhVien();
+                            String hoten = des.decrypt(rs.getString("hoten"));
+                            String mssv = des.decrypt(rs.getString("mssv"));
+                            String toan = des.decrypt(rs.getString("toan"));
+                            String van = des.decrypt(rs.getString("van"));
+                            String anh = des.decrypt(rs.getString("anh"));
+
                             item.setId(rs.getInt("id"));
-                            item.setHoten(rs.getString("hoten"));
-                            item.setMssv(rs.getString("mssv"));
-                            item.setToan(rs.getDouble("toan"));
-                            item.setVan(rs.getDouble("van"));
-                            item.setAnh(rs.getDouble("anh"));
-                            item.setDiemTB(rs.getDouble("diemTB"));
+                            item.setHoten(hoten);
+                            item.setMssv(mssv);
+                            item.setToan(Double.parseDouble(toan));
+                            item.setVan(Double.parseDouble(van));
+                            item.setAnh(Double.parseDouble(anh));
                             list.add(item);
                         }
                         sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
@@ -104,21 +108,17 @@ public class Server {
                     // xu lieu du lieu duoc nhan
                     String duLieuNhanDuocTuDangKy = new String(packet.getData(), 0, packet.getLength());
 
-                    System.out.println(duLieuNhanDuocTuDangKy + "      hfh");
-
+                    // tách du lieu và mã hóa
                     String[] mangDuLieuNhanDuoc = duLieuNhanDuocTuDangKy.split("#");
-
-                    // lay du lieu ra ngoai
-                    String hoten = mangDuLieuNhanDuoc[0];
-                    String mssv = mangDuLieuNhanDuoc[1];
-                    String toan = mangDuLieuNhanDuoc[2];
-                    String van = mangDuLieuNhanDuoc[3];
-                    String anh = mangDuLieuNhanDuoc[4];
-                    String diemTB = mangDuLieuNhanDuoc[5];
+                    String hoten = des.encrypt(mangDuLieuNhanDuoc[0]);
+                    String mssv = des.encrypt(mangDuLieuNhanDuoc[1]);
+                    String toan = des.encrypt(mangDuLieuNhanDuoc[2]);
+                    String van = des.encrypt(mangDuLieuNhanDuoc[3]);
+                    String anh = des.encrypt(mangDuLieuNhanDuoc[4]);
 
                     try {
                         //kiem tra xem ma nhan vien co bi trung - neu trung thi dung lai luon
-                        ResultSet rs = db.Query("SELECT * FROM DiemSinhVien WHERE mssv = '" + mssv + "'");
+                        ResultSet rs = db.Query("SELECT * FROM SinhVien WHERE mssv = '" + mssv + "'");
                         if (rs.next()) {
                             sendData("duplicate_masv", packet.getAddress(), packet.getPort(), socket);
                             break;
@@ -128,23 +128,31 @@ public class Server {
                     }
 
                     // neu ma sinh vien khong bi trung thi tiep tuc them moi vao co so du lieu
-                    String cauTruyVan = "INSERT INTO DiemSinhVien( hoten, mssv, toan, van, anh, diemTB) "
-                            + "VALUES( '" + hoten + "' , '" + mssv + "', " + toan + ", " + van + ", " + anh + ", " + diemTB + ")";
+                    String cauTruyVan = "INSERT INTO SinhVien( hoten, mssv, toan, van, anh) "
+                            + "VALUES( '" + hoten + "' , '" + mssv + "', '" + toan + "', '" + van + "', '" + anh + "')";
 
                     db.Query(cauTruyVan);
                     sendData("success", packet.getAddress(), packet.getPort(), socket);
+
+                    //lấy dữ liệu từ DB và giải mã
                     try {
                         ArrayList<SinhVien> list = new ArrayList<SinhVien>();
-                        ResultSet rs = db.Query("SELECT * FROM DiemSinhVien");
+                        ResultSet rs = db.Query("SELECT * FROM SinhVien");
                         while (rs.next()) {
                             SinhVien item = new SinhVien();
+                            //giải mã
+                            hoten = des.decrypt(rs.getString("hoten"));
+                            mssv = des.decrypt(rs.getString("mssv"));
+                            toan = des.decrypt(rs.getString("toan"));
+                            van = des.decrypt(rs.getString("van"));
+                            anh = des.decrypt(rs.getString("anh"));
+                            //
                             item.setId(rs.getInt("id"));
-                            item.setHoten(rs.getString("hoten"));
-                            item.setMssv(rs.getString("mssv"));
-                            item.setToan(rs.getDouble("toan"));
-                            item.setVan(rs.getDouble("van"));
-                            item.setAnh(rs.getDouble("anh"));
-                            item.setDiemTB(rs.getDouble("diemTB"));
+                            item.setHoten(hoten);
+                            item.setMssv(mssv);
+                            item.setToan(Double.parseDouble(toan));
+                            item.setVan(Double.parseDouble(van));
+                            item.setAnh(Double.parseDouble(anh));
                             list.add(item);
                         }
                         sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
@@ -152,15 +160,12 @@ public class Server {
                         System.out.println("HEHE");
                         //sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
                     }
-
                     break;
                 case "demo2":
 
                     break;
                 case "demo3":
-
                     break;
-
                 case "QUIT":
                     break OUTER;
             }

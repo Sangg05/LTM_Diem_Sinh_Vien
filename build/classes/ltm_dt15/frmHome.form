@@ -219,6 +219,9 @@
               </Border>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtToanKeyTyped"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="txtVan">
           <Properties>
@@ -231,6 +234,9 @@
               </Border>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtVanKeyTyped"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="txtAnh">
           <Properties>
@@ -243,6 +249,9 @@
               </Border>
             </Property>
           </Properties>
+          <Events>
+            <EventHandler event="keyTyped" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtAnhKeyTyped"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="btnSend">
           <Properties>

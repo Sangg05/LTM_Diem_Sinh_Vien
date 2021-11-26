@@ -56,41 +56,23 @@ public class frmHome extends javax.swing.JFrame {
         this.port = port;
         this.mapper = new ObjectMapper();
 
-        txtToan.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!((c >= '0') && (c <= '9')
-                        || (c == KeyEvent.VK_BACK_SPACE)
-                        || (c == KeyEvent.VK_DELETE)) && (c != '\b')) {
-                    getToolkit().beep();
-                    e.consume();
-                }
-            }
-        });
-        txtVan.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!((c >= '0') || (c != '\b')
-                        || (c == KeyEvent.VK_BACK_SPACE)
-                        || (c == KeyEvent.VK_DELETE))) {
-                    getToolkit().beep();
-                    e.consume();
-                }
-            }
-        });
-        txtAnh.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                if (!((c >= '0') && (c <= '9') || (c != '\b')
-                        || (c == KeyEvent.VK_BACK_SPACE)
-                        || (c == KeyEvent.VK_DELETE))) {
-                    getToolkit().beep();
-                    e.consume();
-                }
-            }
-        });
         getDiem(client);
 
+    }
+
+    //determine if keytyped is a valid input
+    private boolean validate(char ch) {
+
+        if (!(Character.isDigit(ch)
+                || ch == KeyEvent.VK_BACK_SPACE
+                || ch == KeyEvent.VK_DELETE
+                || ch == KeyEvent.VK_DECIMAL
+                || ch == KeyEvent.VK_PERIOD)) {
+
+            return false; //return false, because char is invalid           
+        }
+
+        return true; // return true, when the if statement above does not meet its conditions  
     }
 
     private frmHome() {
@@ -152,10 +134,25 @@ public class frmHome extends javax.swing.JFrame {
         jLabel5.setText("Điểm Anh:");
 
         txtToan.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
+        txtToan.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtToanKeyTyped(evt);
+            }
+        });
 
         txtVan.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
+        txtVan.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtVanKeyTyped(evt);
+            }
+        });
 
         txtAnh.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
+        txtAnh.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtAnhKeyTyped(evt);
+            }
+        });
 
         btnSend.setText("Gửi");
         btnSend.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(204, 204, 255), new java.awt.Color(204, 204, 255)));
@@ -306,10 +303,12 @@ public class frmHome extends javax.swing.JFrame {
 
         Object[] row = new Object[4];
         for (int i = 0; i < list.size(); i++) {
-            row[0] = list.get(i).getId();
-            row[1] = list.get(i).getHoten();
-            row[2] = list.get(i).getMssv();
-            row[3] = list.get(i).getDiemTB();
+            SinhVien sv = list.get(i);
+            double diemTB = (sv.getToan() + sv.getVan() + sv.getAnh()) / 3;
+            row[0] = sv.getId();
+            row[1] = sv.getHoten();
+            row[2] = sv.getMssv();
+            row[3] = (double) Math.round(diemTB * 10) / 10;
             model.addRow(row);
         }
     }
@@ -317,18 +316,20 @@ public class frmHome extends javax.swing.JFrame {
     private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
         if (txtHoten.getText().isEmpty() || txtMaSV.getText().isEmpty() || txtToan.getText().isEmpty() || txtVan.getText().isEmpty() || txtAnh.getText().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Không được để trống hoặc thông tin không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } else if (Double.parseDouble(txtToan.getText()) > 10 || Double.parseDouble(txtToan.getText()) < 0
+                || Double.parseDouble(txtVan.getText()) > 10 || Double.parseDouble(txtVan.getText()) < 0
+                || Double.parseDouble(txtAnh.getText()) > 10 || Double.parseDouble(txtAnh.getText()) < 0) {
+            JOptionPane.showMessageDialog(rootPane, "Điểm phải < 10 và > 0 !", "Thông báo", JOptionPane.ERROR_MESSAGE);
         } else {
             String hoten = txtHoten.getText();
             String mssv = txtMaSV.getText();
             String toan = txtToan.getText();
             String van = txtVan.getText();
             String anh = txtAnh.getText();
-            double diemTB = (Double.parseDouble(toan) + Double.parseDouble(van) + Double.parseDouble(anh)) / 3;
-            String duLieu = hoten + "#" + mssv + "#" + toan + "#" + van + "#" + anh + "#" + diemTB;
+            String duLieu = hoten + "#" + mssv + "#" + toan + "#" + van + "#" + anh;
 
             byte array[] = duLieu.getBytes();
             try {
-
                 byte flag[] = "info_sv".getBytes();
                 client.send(new DatagramPacket(flag, flag.length, ip, port));
                 System.out.println("send array");
@@ -364,6 +365,60 @@ public class frmHome extends javax.swing.JFrame {
     private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
         // TODO add your handling code here:
     }//GEN-LAST:event_formWindowActivated
+
+    private void txtToanKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtToanKeyTyped
+        if (!validate(evt.getKeyChar())) { //get char or keytyped
+            getToolkit().beep();
+            evt.consume();
+        }
+        //limit one dot or decimal point can be entered
+        if (evt.getKeyChar() == KeyEvent.VK_DECIMAL || evt.getKeyChar() == KeyEvent.VK_PERIOD) {
+
+            String field = txtToan.getText(); //get the string in textField
+            int index = field.indexOf("."); //find the index of dot(.) or decimal point
+            if (!(index == -1)) { //if there is any
+                getToolkit().beep();
+                evt.consume(); //consume the keytyped. this prevents the keytyped from appearing on the textfield;
+            }
+
+        }
+    }//GEN-LAST:event_txtToanKeyTyped
+
+    private void txtVanKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtVanKeyTyped
+        if (!validate(evt.getKeyChar())) { //get char or keytyped
+            getToolkit().beep();
+            evt.consume();
+        }
+        //limit one dot or decimal point can be entered
+        if (evt.getKeyChar() == KeyEvent.VK_DECIMAL || evt.getKeyChar() == KeyEvent.VK_PERIOD) {
+
+            String field = txtVan.getText(); //get the string in textField
+            int index = field.indexOf("."); //find the index of dot(.) or decimal point
+            if (!(index == -1)) { //if there is any
+                getToolkit().beep();
+                evt.consume(); //consume the keytyped. this prevents the keytyped from appearing on the textfield;
+            }
+
+        }
+    }//GEN-LAST:event_txtVanKeyTyped
+
+    private void txtAnhKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtAnhKeyTyped
+        if (!validate(evt.getKeyChar())) { //get char or keytyped
+            getToolkit().beep();
+            evt.consume();
+        }
+        //limit one dot or decimal point can be entered
+        if (evt.getKeyChar() == KeyEvent.VK_DECIMAL || evt.getKeyChar() == KeyEvent.VK_PERIOD) {
+
+            String field = txtAnh.getText(); //get the string in textField
+            int index = field.indexOf("."); //find the index of dot(.) or decimal point
+            if (!(index == -1)) { //if there is any
+                getToolkit().beep();
+                evt.consume(); //consume the keytyped. this prevents the keytyped from appearing on the textfield;
+            }
+
+        }
+    }//GEN-LAST:event_txtAnhKeyTyped
 
     private static DatagramPacket getData(DatagramSocket socket) throws IOException {
         byte[] dataPacket = new byte[1024];
