@@ -236,7 +236,7 @@ public class frmHome extends javax.swing.JFrame {
 
             },
             new String [] {
-                "id", "Họ tên", "MSSV", "Điểm TB"
+                "Id", "Họ tên", "MSSV", "Điểm TB"
             }
         ));
         tbDiemSV.setSelectionBackground(new java.awt.Color(204, 204, 255));
