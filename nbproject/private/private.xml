@@ -3,9 +3,15 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/LTM/LTM_Diem_Sinh_Vien/src/ltm_dt15/frmMain.java</file>
-            <file>file:/D:/LTM/LTM_Diem_Sinh_Vien/src/ltm_dt15/Server.java</file>
-            <file>file:/D:/LTM/LTM_Diem_Sinh_Vien/src/ltm_dt15/frmHome.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/model/SinhVien.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/model/SqlAuth.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/DBAccess.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/SQLServer_Connection.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/Utils.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/frmHome.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/Server.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/frmMain.java</file>
+            <file>file:/C:/Users/thuan/Desktop/Project/LTM_Diem_Sinh_Vien/src/ltm_dt15/DES.java</file>
         </group>
     </open-files>
 </project-private>

@@ -5,21 +5,29 @@
  */
 package ltm_dt15;
 
+import java.awt.HeadlessException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import model.SqlAuth;
 
-/**
- *
- * @author ngdanghau
- */
 public class frmMain extends javax.swing.JFrame {
 
     DatagramSocket client;
@@ -34,6 +42,33 @@ public class frmMain extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+    }
+
+    public static boolean isAvailable(int port) {
+        ServerSocket ss = null;
+        DatagramSocket ds = null;
+        try {
+            ss = new ServerSocket(port);
+            ss.setReuseAddress(true);
+            ds = new DatagramSocket(port);
+            ds.setReuseAddress(true);
+            return true;
+        } catch (IOException e) {
+        } finally {
+            if (ds != null) {
+                ds.close();
+            }
+
+            if (ss != null) {
+                try {
+                    ss.close();
+                } catch (IOException e) {
+                    /* should not be thrown */
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -240,15 +275,59 @@ public class frmMain extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Không được để trống thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            byte[] incomingData = new byte[1024];
             client = new DatagramSocket();
             ip = InetAddress.getByName(txtIP.getText());
             port = Integer.parseInt(txtPort.getText());
-            JOptionPane.showMessageDialog(null, "Kết nối thành công!");
-            Utils.enableAll(jPanel2, false);
 
-            Utils.enableAll(jPanel1, true);
+            boolean isAvailable = isAvailable(Integer.parseInt(txtPort.getText()));
+
+            if (!isAvailable) {
+                try {
+                    byte flag[] = "connectServer".getBytes();
+                    client.send(new DatagramPacket(flag, flag.length, ip, port));
+
+                    Duration timeout = Duration.ofSeconds(10);
+                    ExecutorService executor = Executors.newSingleThreadExecutor();
+
+                    final Future<String> handler = executor.submit(new Callable() {
+                        @Override
+                        public String call() throws Exception {
+                            DatagramPacket incomingPacket = new DatagramPacket(incomingData, incomingData.length);
+                            client.receive(incomingPacket);
+                            String response = new String(incomingPacket.getData());
+
+                            return response;
+                        }
+                    });
+
+                    try {
+                        String res = handler.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+                        if (res.contains("success")) {
+                            JOptionPane.showMessageDialog(null, "Kết nối thành công!");
+                            Utils.enableAll(jPanel2, false);
+                            Utils.enableAll(jPanel1, true);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Kết nối thất bại!");
+                        }
+                    } catch (TimeoutException e) {
+                        JOptionPane.showMessageDialog(null, "Kết nối thất bại!");
+                        handler.cancel(true);
+                    }
+
+                    executor.shutdownNow();
+
+                } catch (HeadlessException | IOException | InterruptedException | ExecutionException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Kết nối thất bại. Cổng kết nối không tồn tại!");
+            }
+
         } catch (SocketException | UnknownHostException ex) {
             JOptionPane.showMessageDialog(null, ex.getMessage());
+        } catch (IOException ex) {
+            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnConnectSocketActionPerformed
 
@@ -292,7 +371,7 @@ public class frmMain extends javax.swing.JFrame {
             if (response.contains("success")) {
                 JOptionPane.showMessageDialog(null, "Kết nối thành công!");
                 new frmHome(client, ip, port).setVisible(true);
-                this.setVisible(false);
+                this.dispose();
             } else {
                 JOptionPane.showMessageDialog(null, response, "Lỗi", JOptionPane.ERROR_MESSAGE);
             }

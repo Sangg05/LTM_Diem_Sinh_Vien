@@ -22,13 +22,21 @@ public class DBAccess {
     private Statement stmt;
     SQLServer_Connection myCon;
 
+    public Connection getCon() {
+        return con;
+    }
+
     public DBAccess() {
         myCon = new SQLServer_Connection();
     }
 
-    public void connect(String Url) throws SQLException {
+    public Connection connect(String Url) throws SQLException {
         con = myCon.getConnection(Url);
-        stmt = con.createStatement();
+        if (con != null) {
+            stmt = con.createStatement();
+        }
+        
+        return con;
     }
 
     public int Update(String str) {
@@ -53,7 +61,7 @@ public class DBAccess {
 
     public static void main(String[] args) {
         try {
-            new DBAccess().connect("jdbc:sqlserver://localhost:1433;Database=NCKH;user=sa;password=123456");
+            new DBAccess().connect("jdbc:sqlserver://localhost:1433;Database=LapTrinhMang;user=sa;password=123456");
         } catch (SQLException ex) {
             Logger.getLogger(DBAccess.class.getName()).log(Level.SEVERE, null, ex);
         }

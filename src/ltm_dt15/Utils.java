@@ -9,10 +9,6 @@ import java.awt.Component;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-/**
- *
- * @author ngdanghau
- */
 public class Utils {
     public static void enableAll(JPanel p, boolean enabled) {
         for (Component comp : p.getComponents()) {

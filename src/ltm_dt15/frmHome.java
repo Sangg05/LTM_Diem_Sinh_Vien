@@ -7,7 +7,6 @@ package ltm_dt15;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,10 +22,6 @@ import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import model.SinhVien;
 
-/**
- *
- * @author ngdanghau
- */
 public class frmHome extends javax.swing.JFrame {
 
     DatagramSocket client;

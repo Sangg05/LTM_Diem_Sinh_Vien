@@ -13,11 +13,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import model.SinhVien;
 import model.SqlAuth;
 
@@ -65,7 +64,11 @@ public class Server {
             line = new String(packet.getData(), 0, packet.getLength());
             System.out.println(line);
             switch (line) {
-                case "connectSQL":
+                case "connectServer": {
+                    sendData("success", packet.getAddress(), packet.getPort(), socket);
+                    break;
+                }
+                case "connectSQL": {
                     packet = getData(socket);
                     in = new ByteArrayInputStream(packet.getData());
                     is = new ObjectInputStream(in);
@@ -73,37 +76,41 @@ public class Server {
                     try {
                         SqlAuth sql = (SqlAuth) is.readObject();
                         db = new DBAccess();
-                        db.connect("jdbc:sqlserver://" + sql.getIp() + ":" + sql.getPort() + ";Database=LapTrinhMang;user=" + sql.getUser() + ";password=" + sql.getPass());
+                        Connection conn = db.connect("jdbc:sqlserver://" + sql.getIp() + ":" + sql.getPort() + ";Database=LapTrinhMang;user=" + sql.getUser() + ";password=" + sql.getPass());
                         //db.connect("jdbc:sqlserver://localhost:1433;Database=NCKH;user=sa;password=123456");
-                        sendData("success", packet.getAddress(), packet.getPort(), socket);
+                        if (conn != null) {
+                            sendData("success", packet.getAddress(), packet.getPort(), socket);
 
-                        //Gửi danh sách sinh viên sang Home
-                        ArrayList<SinhVien> list = new ArrayList<SinhVien>();
-                        ResultSet rs = db.Query("SELECT * FROM SinhVien");
-                        while (rs.next()) {
-                            SinhVien item = new SinhVien();
-                            String hoten = des.decrypt(rs.getString("hoten"));
-                            String mssv = des.decrypt(rs.getString("mssv"));
-                            String toan = des.decrypt(rs.getString("toan"));
-                            String van = des.decrypt(rs.getString("van"));
-                            String anh = des.decrypt(rs.getString("anh"));
+                            //Gửi danh sách sinh viên sang Home
+                            ArrayList<SinhVien> list = new ArrayList<SinhVien>();
+                            ResultSet rs = db.Query("SELECT * FROM SinhVien");
+                            while (rs.next()) {
+                                SinhVien item = new SinhVien();
+                                String hoten = des.decrypt(rs.getString("hoten"));
+                                String mssv = des.decrypt(rs.getString("mssv"));
+                                String toan = des.decrypt(rs.getString("toan"));
+                                String van = des.decrypt(rs.getString("van"));
+                                String anh = des.decrypt(rs.getString("anh"));
 
-                            item.setId(rs.getInt("id"));
-                            item.setHoten(hoten);
-                            item.setMssv(mssv);
-                            item.setToan(Double.parseDouble(toan));
-                            item.setVan(Double.parseDouble(van));
-                            item.setAnh(Double.parseDouble(anh));
-                            list.add(item);
+                                item.setId(rs.getInt("id"));
+                                item.setHoten(hoten);
+                                item.setMssv(mssv);
+                                item.setToan(Double.parseDouble(toan));
+                                item.setVan(Double.parseDouble(van));
+                                item.setAnh(Double.parseDouble(anh));
+                                list.add(item);
+                            }
+                            sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
+                        } else {
+                            sendData("Kết nối CSDL thất bại. Vui lòng xem lại thông tin kết nối!", packet.getAddress(), packet.getPort(), socket);
                         }
-                        sendData(mapper.writeValueAsString(list), packet.getAddress(), packet.getPort(), socket);
-
-                    } catch (ClassNotFoundException | SQLException ex) {
+                    } catch (ClassNotFoundException | NullPointerException | SQLException ex) {
                         sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
                     }
 
                     break;
-                case "info_sv": // @author PHONG
+                }
+                case "info_sv": {
                     packet = getData(socket);
                     // xu lieu du lieu duoc nhan
                     String duLieuNhanDuocTuDangKy = new String(packet.getData(), 0, packet.getLength());
@@ -161,11 +168,7 @@ public class Server {
                         //sendData(ex.getMessage(), packet.getAddress(), packet.getPort(), socket);
                     }
                     break;
-                case "demo2":
-
-                    break;
-                case "demo3":
-                    break;
+                }
                 case "QUIT":
                     break OUTER;
             }
